@@ -16,5 +16,4 @@ sub extends {
     $PROJ->create($template);
   }
 }
-
 1;

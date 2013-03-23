@@ -5,6 +5,7 @@ use warnings;
 use Cwd;
 
 use Proj::Handler;
+use Proj::Template;
 
 sub new {
   my ($package,%args) = @_;
@@ -12,8 +13,8 @@ sub new {
   my $self = bless({
     conf => {%args},
     include => [ getcwd ],
-    path => [],
     created => [],
+    basedir => '',
     tmpldir => '',
     tmplname => '',
   },$package);
@@ -48,14 +49,14 @@ sub _template_file_name {
 sub _template_directory {
   my ($self) = @_;
 
-  return $self->{tmpldir} . '.d';
+  return $self->{tmplname} . '.d';
 }
 
 
 sub _source_file_name {
   my ($self,$srcname) = @_;
 
-  return __first_existing(map { join('/',$_,$self->{tmpldir}) }
+  return __first_existing(map { join('/',$self->{tmpldir},$_) }
                             map { ($_.'.tt', $_ ) }
                               join('/',@{ $self->{path} },$srcname),
                               $srcname);
@@ -80,6 +81,8 @@ sub _fail {
 
   use File::Path qw(remove_tree);
 
+  chdir $self->{basedir} if $self->{basedir};
+
   print STDERR "$message\n";
   foreach my $file_or_directory (@{ $self->{created} }) {
     remove_tree($file_or_directory,{verbose => 1});
@@ -100,7 +103,7 @@ sub _create_tree {
   foreach my $branch (@branches) {
     my ($method,$arg,@children) = map { __value($_) } @{ $branch };
     no strict 'refs';
-    my $handler = &{__PACKAGE__.'::'.$method};
+    my $handler = \&{'Proj::Handler::'.$method};
 
     unless (defined &$handler) {
       warn "Undefined handler $method!\n";
@@ -115,6 +118,7 @@ sub __run_hooks {
   my (@hooks) = @_;
 
   foreach my $hook (@hooks) {
+    next unless defined $hook;
     if (ref($hook) eq 'CODE') {
       $hook->();
     }
@@ -151,10 +155,23 @@ sub set_template {
   $self->_set_template_directory();
 }
 
+sub set_path {
+  my ($self,$path) = @_;
+
+  $path ||= getcwd;
+
+  $self->{path} = [split '/',$path];
+
+  return $self;
+}
+
 sub create {
   my ($self,$template) = @_;
 
+  $self->{basedir} = getcwd;
   $self->set_template($template);
+
+  $self->set_path() unless ref $self->{path} eq 'ARRAY';
 
   {
     package Proj::Template;
@@ -167,7 +184,6 @@ sub create {
     }
   }
 
-  no warnings 'once';
   __run_hooks($Proj::Template::before);
   {
     local $SIG{__DIE__} = defined $self->{error}

@@ -4,7 +4,10 @@ use strict;
 use warnings;
 use Template;
 
-my $TEMPLATE = Template->new({POST_CHOMP => 1});
+my $TEMPLATE = Template->new({
+  POST_CHOMP => 1,
+  ABSOLUTE => 1,
+});
 
 sub dir {
   my ($proj,$arg,@children) = @_;
@@ -12,8 +15,10 @@ sub dir {
   push @{ $proj->{path} }, $arg;
   my $path = $proj->_path;
 
-  mkdir $path or $proj->_fail("$path: $!");
+  mkdir $path or $proj->_fail("$path: $!")
+    unless -e $path;
   chdir $path;
+
   $proj->_register($path);
 
   $proj->_create_tree(@children);
@@ -25,8 +30,25 @@ sub dir {
 sub file {
   my ($proj,$arg,@children) = @_;
 
+  my $options = $children[0] || { overwrite => 0 };
+
+  if (-e $arg) {
+    if ($options->{overwrite}) {
+      warn "overwrite $arg\n";
+    }
+    else {
+      warn "exists $arg\n";
+      return;
+    }
+  }
+
   my $fname = $proj->_source_file_name($arg);
-  if ($fname eq $arg.'.tt') {
+  unless ($fname) {
+    warn "unknown $arg\n";
+    return;
+  }
+
+  if ((split '/',$fname)[-1] eq "$arg.tt") {
     $TEMPLATE->process($fname,$proj->{conf},$arg)
       || warn "$fname: " . $TEMPLATE->error;
   }
