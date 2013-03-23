@@ -15,11 +15,11 @@ sub dir {
   push @{ $proj->{path} }, $arg;
   my $path = $proj->_path;
 
-  mkdir $path or $proj->_fail("$path: $!")
-    unless -e $path;
+  unless (-e $path) {
+    mkdir $path or $proj->_fail("$path: $!");
+    $proj->_register($path);
+  }
   chdir $path;
-
-  $proj->_register($path);
 
   $proj->_create_tree(@children);
 
