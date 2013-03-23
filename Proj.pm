@@ -165,6 +165,15 @@ sub set_path {
   return $self;
 }
 
+sub curdir {
+  my ($self) = @_;
+
+  my $rel = substr($self->_path,length($self->{basedir})) . '/';
+  $rel =~ s{^/}{};
+
+  return $rel;
+}
+
 sub create {
   my ($self,$template) = @_;
 

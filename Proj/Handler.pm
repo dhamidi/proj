@@ -31,23 +31,25 @@ sub file {
   my ($proj,$arg,@children) = @_;
 
   my $options = $children[0] || { overwrite => 0 };
+  my $relname = $proj->curdir ."$arg";
 
   if (-e $arg) {
     if ($options->{overwrite}) {
-      warn "overwrite $arg\n";
+      warn "overwrite $relname\n";
     }
     else {
-      warn "exists $arg\n";
+      warn "exists $relname\n";
       return;
     }
   }
 
   my $fname = $proj->_source_file_name($arg);
   unless ($fname) {
-    warn "unknown $arg\n";
+    warn "unknown $relname\n";
     return;
   }
 
+  warn "create $relname\n";
   if ((split '/',$fname)[-1] eq "$arg.tt") {
     $TEMPLATE->process($fname,$proj->{conf},$arg)
       || warn "$fname: " . $TEMPLATE->error;
