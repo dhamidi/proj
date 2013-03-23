@@ -2,190 +2,181 @@ package Proj;
 
 use strict;
 use warnings;
-use File::Spec;
+use Cwd;
 
-{
-  package Proj::Context;
-  use File::Spec;
-  use Cwd;
-
-  sub new {
-    my ($package,%args) = @_;
-
-    $args{path} ||= getcwd;
-    $args{dirstack} = [$args{path}];
-
-    my $self = bless(\%args,$package);
-
-    return $self;
-  }
-
-  sub path {
-    my ($self) = @_;
-
-    return $self->{path};
-  }
-
-  sub file {
-    my ($self,$name) = @_;
-
-    return File::Spec->catfile($self->path,$name);
-  }
-
-  sub pushd {
-    my ($self,$dir) = @_;
-
-    unless (File::Spec->file_name_is_absolute( $dir ) ) {
-      $dir = File::Spec->catdir($self->path,$dir);
-    }
-
-    push @{$self->{dirstack}},$dir;
-    chdir $dir;
-    $self->{path} = $dir;
-
-    return $self;
-  }
-
-  sub popd {
-    my ($self) = @_;
-
-    my $top = pop @{ $self->{dirstack} };
-    my $path = $self->{dirstack}->[0];
-    chdir $path;
-    $self->{path} = $path;
-
-    return $top;
-  }
-
-  sub srcpath {
-    my ($self,$path) = @_;
-
-    if (@_ > 1) { $self->{srcpath} = $path; return $self; }
-    else { return $self->{srcpath};}
-  }
-
-  sub basedir {
-    my ($self) = @_;
-
-    return $self->{dirstack}->[0];
-  }
-
-  sub template {
-    use List::Util qw(first);
-
-    my ($self,$relpath) = @_;
-
-    my @candidates = (
-      File::Spec->rel2abs( $relpath, $self->srcpath ),
-      (File::Spec->splitdir($relpath))[-1],
-    );
-
-    return first { -r $_ } map {
-      (map { File::Spec->catfile($self->srcpath,$_) } $_,"$_.tmpl")
-    } @candidates;
-  }
-}
-
-{
-  package Proj::Handler;
-
-  sub define {
-    my ($name,$code) = @_;
-    no strict 'refs';
-    *$name = sub {
-      $code->(map { ref $_ eq 'CODE'? $_->() : $_ } @_);
-    };
-  }
-
-  define file => sub {
-    use File::Spec;
-
-    my ($c,$fname) = @_;
-
-    $fname = $c->file($fname);
-
-    File::Spec->abs2rel($fname, $c->basedir);
-    print STDERR "$fname\n";
-  };
-
-  define dir => sub {
-    my ($c,$dname,@children) = @_;
-
-    my $path = $c->{context}->file($dname);
-    mkdir $path;
-    $c->context->pushd($path);
-    $c->create(\@children);
-    $c->context->popd();
-  };
-
-  define shell => sub {
-    my ($c,$command,@arguments) = @_;
-    local $" = " ";
-    system($command,@arguments);
-  }
-}
+use Proj::Handler;
 
 sub new {
-  my ($package,$args) = @_;
+  my ($package,%args) = @_;
 
-  my $self = bless({},$package);
+  my $self = bless({
+    conf => {%args},
+    include => [ getcwd ],
+    path => [],
+    created => [],
+    tmpldir => '',
+    tmplname => '',
+  },$package);
 
-  return $self->init($args);
+  if (defined $args{-include}) {
+    push @{ $self->{include} }, $args{-include};
+  }
+
+  if (defined $args{-error}) {
+    $self->{error} = $args{-error};
+  }
+
+  delete $args{$_} foreach grep { /^-/ } keys %args;
+
+  return $self;
+};
+
+sub __first_existing {
+  use List::Util qw(first);
+  return first { -e $_ } @_;
 }
 
-sub init {
-  my ($self,$args) = @_;
+sub _template_file_name {
+  my ($self,$tmpl) = @_;
 
-  $args->{context} ||= {};
+  use List::Util qw(first);
 
-  $self->{context} = Proj::Context->new(%{$args->{context}});
-  $self->{path}    = $args->{path};
+  return __first_existing(map { join('/',$_,$tmpl) }
+                            @{ $self->{include}});
+}
+
+sub _template_directory {
+  my ($self) = @_;
+
+  return $self->{tmpldir} . '.d';
+}
+
+
+sub _source_file_name {
+  my ($self,$srcname) = @_;
+
+  return __first_existing(map { join('/',$_,$self->{tmpldir}) }
+                            map { ($_.'.tt', $_ ) }
+                              join('/',@{ $self->{path} },$srcname),
+                              $srcname);
+}
+
+sub __value {
+  my ($scalar) = @_;
+
+  return ref $scalar eq 'CODE' ? $scalar->() : $scalar;
+}
+
+sub _register {
+  my ($self,$filename) = @_;
+
+  unshift @{ $self->{created} },$filename;
 
   return $self;
 }
 
-sub context {
+sub _fail {
+  my ($self,$message) = @_;
+
+  use File::Path qw(remove_tree);
+
+  print STDERR "$message\n";
+  foreach my $file_or_directory (@{ $self->{created} }) {
+    remove_tree($file_or_directory,{verbose => 1});
+  }
+
+  return 1;
+}
+
+sub _path {
   my ($self) = @_;
 
-  return $self->{context};
+  return join('/',@{ $self->{path} });
 }
 
-sub find {
-  use List::Util qw(first);
+sub _create_tree {
+  my ($self,@branches) = @_;
 
-  my ($self,$template) = @_;
-
-  my @candidates = map {
-    File::Spec->catfile($_,$template);
-  } @{ $self->{path} };
-
-  return first { -r $_ } @candidates;
-}
-
-sub create {
-  my ($self,$tree) = @_;
-  foreach my $branch (@{ $tree }) {
+  foreach my $branch (@branches) {
+    my ($method,$arg,@children) = map { __value($_) } @{ $branch };
     no strict 'refs';
+    my $handler = &{__PACKAGE__.'::'.$method};
 
-    my $handler = $branch->[0];
-
-    $handler = \&{"Proj::Handler::$handler"};
     unless (defined &$handler) {
-      warn "Undefined handler: ".$branch->[0]."\n";
-    } else {
-      $handler->($self,@{$branch}[1..$#{$branch}]);
+      warn "Undefined handler $method!\n";
+    }
+    else {
+      $handler->($self,$arg,@children);
+    }
+  };
+}
+
+sub __run_hooks {
+  my (@hooks) = @_;
+
+  foreach my $hook (@hooks) {
+    if (ref($hook) eq 'CODE') {
+      $hook->();
+    }
+    else {
+      qx{$hook};
     }
   }
 }
 
-sub main {
-  use Cwd;
-  my $p = Proj->new({
-    path => [ getcwd ],
-  });
+sub _set_template_directory {
+  my ($self) = @_;
 
-  $p->create([[dir => 'hello',
-               [file =>'world']]]);
+  my $tmpldir = $self->_template_directory;
+
+  unless ($tmpldir) {
+    die "$tmpldir: $!\n" unless -x $tmpldir && -d _;
+  }
+
+  $self->{tmpldir} = $tmpldir;
+}
+
+sub set_template {
+  my ($self,$template) = @_;
+
+  my $tmplname = $self->_template_file_name($template);
+
+  unless ($tmplname) {
+    die "Cannot find \"$template\".\nSearched:\n"
+      .join("\n",@{ $self->{include} })."\n";
+  }
+
+  $self->{tmplname} = $tmplname;
+
+  $self->_set_template_directory();
+}
+
+sub create {
+  my ($self,$template) = @_;
+
+  $self->set_template($template);
+
+  {
+    package Proj::Template;
+
+    my $tmplname = $self->{tmplname};
+
+    unless (my $return = do $tmplname) {
+      die "couldn't parse $tmplname: $@" if $@;
+      die "cannot read $tmplname: $!" unless defined $return;
+    }
+  }
+
+  no warnings 'once';
+  __run_hooks($Proj::Template::before);
+  {
+    local $SIG{__DIE__} = defined $self->{error}
+      ? sub { $self->{error}->($self,@_) }
+      : sub { exit $self->_fail(@_); };
+
+    $self->_create_tree(@{ $Proj::Template::tree });
+  }
+  __run_hooks($Proj::Template::after);
 }
 
 1;
