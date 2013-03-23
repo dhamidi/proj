@@ -115,15 +115,15 @@ sub _create_tree {
 }
 
 sub __run_hooks {
-  my (@hooks) = @_;
+  my ($hooks) = @_;
 
-  foreach my $hook (@hooks) {
+  foreach my $hook (@{ $hooks }) {
     next unless defined $hook;
     if (ref($hook) eq 'CODE') {
       $hook->();
     }
     else {
-      qx{$hook};
+      system($hook);
     }
   }
 }
