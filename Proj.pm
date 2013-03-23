@@ -19,7 +19,7 @@ sub new {
   },$package);
 
   if (defined $args{-include}) {
-    push @{ $self->{include} }, $args{-include};
+    push @{ $self->{include} }, @{ $args{-include} };
   }
 
   if (defined $args{-error}) {
