@@ -66,10 +66,21 @@ sub http {
 
   $arg = 'http://'.$arg unless $arg =~ m{^http[s]?://};
 
-  my ($fname) = ($arg =~ m{/([^? ]+)(?:\?.*$)?});
-  $fname = $proj->_source_file_name($fname);
+  my ($fname) = ($arg =~ m{/([^?/ ]+?)(?:\?.*)?$});
+  $fname = $proj->_source_file_name($fname) || $proj->{tmpldir}.'/'.$fname;
   my $dest  = $children[0] || (split '/',$fname)[-1];
-  mirror($arg,$fname) or warn "Failed to mirror $arg";
+
+  my $ret = mirror($arg,$fname);
+  if ($ret == RC_OK) {
+    warn "get $arg\n";
+  }
+  elsif ($ret == RC_NOT_MODIFIED) {
+    warn "keep $arg\n";
+  }
+  else {
+    warn "Failed to mirror $arg\n";
+  }
+
   copy($fname,$dest) or $proj->_fail("Copy failed: $!");
 }
 
