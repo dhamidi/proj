@@ -178,6 +178,8 @@ sub create {
 
     my $tmplname = $self->{tmplname};
 
+    local $Proj::Template::PROJ = $self;
+
     unless (my $return = do $tmplname) {
       die "couldn't parse $tmplname: $@" if $@;
       die "cannot read $tmplname: $!" unless defined $return;
@@ -190,7 +192,8 @@ sub create {
       ? sub { $self->{error}->($self,@_) }
       : sub { exit $self->_fail(@_); };
 
-    $self->_create_tree(@{ $Proj::Template::tree });
+    $self->_create_tree(@{ $Proj::Template::tree })
+      if $Proj::Template::tree;
   }
   __run_hooks($Proj::Template::after);
 }
