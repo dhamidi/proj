@@ -1,0 +1,137 @@
+* Name
+
+proj -- create files and directories based on templates.
+
+* Description
+
+Proj is a tool born from the desire to automate the tedious tasks when
+starting to work on a website.  Proj creates files and directories
+based on so called "templates" which define a directory structure and
+actions to perform after processing a template, such as initializing a
+git repository.  Templates are general enough to be useful for any kind
+of task that benefits from any sort of scaffolding.
+
+Proj tries to not break any things and does not overwrite any files by
+default.  Single files can be overwritten in the target directory be
+explicitly saying so in the template.  If anything goes wrong during
+the processing of a template, all files created so far are deleted in
+order to not leave the target directory in any inconsistent state.
+
+* Templates
+
+Templates are regular perl code that is evaluated when processing a
+template.  Proj is instrumented by setting certain variables in the
+template, but any perl code can be used in a template.  Each template
+requires an additional directory of the same name suffixed with =.d= to
+exist.  This directory contains all the files referenced in the
+template.
+
+#+CAPTION: Example template
+#+BEGIN_SRC perl
+  $tree = [
+    [ dir => html =>
+        [ file => 'index.html' ]],
+    [ dir => template =>
+        [ file => 'default.html.tt' ]],
+    [ dir => css =>
+        [ file  => "devel.css" ],
+        [ file  => "yaml" ],],
+    [ dir => js =>
+        [ http => 'code.jquery.com/jquery.min.js'],
+        [ http => 'html5shim.googlecode.com/svn/trunk/html5.js'],
+        [ http => 'code.jquery.com/jquery.js'],],
+    [ dir => 'images' ],
+    [ dir => 'perl'   ],
+    [ dir => 'cgi-bin'],
+    [ dir => 'log'    ],
+    [ dir => 'tmp'    ],
+    [ dir => 'conf',
+      [ file => 'lighttpd.conf' ]],
+  ];
+
+  $after = [
+    'git init',
+    'git add .',
+    'git commit -m "initial commit"',
+   ];
+#+END_SRC
+
+The following variables have a special meaning in templates:
+- =$tree= :: this variable describes the directory structure that is to
+             be created. Its value has to be an arrayref of entries,
+             where each entry is of the form =[ $HANDLER, @ARGS ]=.
+             =$HANDLER= names a function in the package =Proj::Handler=
+             and =@ARGS= are the arguments passed to that function.  If
+             any coderefs in an entry are replaced by the value
+             obtained by calling the referenced function without arguments.
+- =$before=, =$after= :: these variables provide hooks for running code
+     or shell commands before and after the structure defined in =$tree=
+     has been created. Their values are arrayrefs of strings of
+     coderefs.  A string is taken as a shell command and executed with
+     =system=, a coderef is called without arguments.
+
+Templates are evaluated within the package =Proj::Template=, so any
+functions defined in that packed can be used in the template without
+importing any modules.  One function, =extends=, is defined by default
+in that package.  It takes a list (NB! not an arrayref) of template
+names and creates those in the current directory.  This is mainly useful
+for extending templates (e.g. to customize shared templates for the
+local environment).
+
+
+* Handlers
+
+The following handlers are defined by default for use in =$tree=
+entries:
+
+- =dir $name @children= :: creates directory =$name= and processes
+     child entries =@children=.  The current directory is set to
+     =$name= while processing =@children=.
+
+     Example:
+     #+BEGIN_SRC perl
+       $tree = [
+         [ dir => 'foo',
+           [file => 'bar']],
+       ];
+     #+END_SRC
+
+- =file $name \%options= :: creates file =$name= by copying it from the
+     template directory.  There are four locations relative to the
+     template directory that are checked in order to find the source
+     file for =$name= (where =$CWD= is the current directory relative
+     to the template directory):
+
+     #+CAPTION: File Locations for foo/bar
+     | Location        | Example      |
+     |-----------------+--------------|
+     | =$name.tt=      | =bar.tt=     |
+     | =$name=         | =bar=        |
+     | =$PWD/$name.tt= | =foo/bar.tt= |
+     | =$PWD/$name=    | =foo/bar=    |
+     |-----------------+--------------|
+
+     The first existing file is used.  If the file name equal
+     =$name.tt=, then the file will be processed as a [[http://tt2.org][Template Toolkit]]
+     template.
+
+     If =$options->{overwrite}= is set to a true value, =$name= in the
+     target directory will be overwritten if it exists.
+
+- =http $url $filename= :: Uses =LWP::Simple::mirror($url)= in the
+     _template directory_ before copying the file named in =$url= to the
+     target directory.  If =$filename= is given, it will be used as the
+     target file name instead.
+
+     Example:
+     #+BEGIN_SRC perl
+     [http => 'code.jquery.com/jquery.js']
+     #+END_SRC
+
+* Requires
+
+Proj requires the following perl modules to be installed:
+
+- Template
+- LWP::Simple
+
