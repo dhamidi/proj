@@ -66,7 +66,7 @@ The following variables have a special meaning in templates:
              obtained by calling the referenced function without arguments.
 - =$before=, =$after= :: these variables provide hooks for running code
      or shell commands before and after the structure defined in =$tree=
-     has been created. Their values are arrayrefs of strings of
+     has been created. Their values are arrayrefs of strings or
      coderefs.  A string is taken as a shell command and executed with
      =system=, a coderef is called without arguments.
 
@@ -77,7 +77,6 @@ in that package.  It takes a list (NB! not an arrayref) of template
 names and creates those in the current directory.  This is mainly useful
 for extending templates (e.g. to customize shared templates for the
 local environment).
-
 
 * Handlers
 
@@ -128,6 +127,47 @@ entries:
      [http => 'code.jquery.com/jquery.js']
      #+END_SRC
 
+* Adding new handlers
+
+It is possible to define own handlers with the function =defhandler= in
+the proj configuration file (=~/.proj.pl=).  =defhandler= takes two
+arguments: the name of the new handler and a coderef to associate with
+that name.  It is basically just syntactic sugar for installing
+functions into =Proj::Handler=.
+
+A function installed with =defhandler= is called with a variable number
+of arguments.  The first argument is always a instance of =Proj=, all
+other arguments are taken from the entry in =$tree=, excluding the
+handler name.  The current working directory is set according to the
+location in =$tree=.  If the handler creates any files that should be
+deleted in case of error, those file names should be registered with the
+=_register(@filenames)= method of the =Proj= instance.  To abort the
+processing of the current template, use the =_fail($message)= method of
+the =Proj= instance.  This exits the program with exit code =1= and
+removes all files created during this run.
+
+A =git= handler that clones a repository if it doesn't exist already
+and otherwise pulls the newest version could look like this:
+#+BEGIN_SRC perl
+  # in file ~/.proj.pl
+  defhandler git => sub {
+    my ($proj,$repo_url,$opts) = @_;
+  
+    my $repo_name = (split '/',$repo_url)[-1];
+  
+    if (-e $repo_name) {
+      $proj->_diag("pull $repo_url");
+      qx{pushd $repo_name; git pull; popd};
+    }
+    else {
+      $proj->_diag("clone $repo_url");
+      $opts ||= '';
+      qx{git clone $opts $repo_url};
+    }
+  
+  };
+#+END_SRC
+
 * Requires
 
 Proj requires the following perl modules to be installed:
@@ -135,3 +175,9 @@ Proj requires the following perl modules to be installed:
 - Template
 - LWP::Simple
 
+* License & Copyright
+
+Copyright (C) 2013 Dario Hamidi =<dario.hamidi@gmail.com>=.
+
+This module is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
