@@ -213,4 +213,20 @@ sub create {
   __run_hooks($Proj::Template::after);
 }
 
+sub load {
+  my ($self,$filename) = @_;
+
+  local *defhandler = sub {
+    my ($name,$code) = @_;
+    no strict 'refs';
+    *{"Proj::Handler::${name}"} = $code;
+  };
+
+  unless (my $return = do $filename) {
+    die "couldn't parse $filename: $@" if $@;
+    die "cannot read $filename: $!" unless defined $return;
+  }
+
+  return $return;
+}
 1;
