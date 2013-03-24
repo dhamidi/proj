@@ -1,6 +1,9 @@
+#+DATE: 2013-03-24
+#+TITLE: Proj
+
 * Name
 
-proj -- create files and directories based on templates.
+proj =/prɔʣ/= -- create files and directories based on templates.
 
 * Description
 
@@ -28,7 +31,7 @@ proj-create [[-i|--include] INCLUDE] TEMPLATE [DEFINITION ...]
 The option =-i= adds directory =INCLUDE= to the list of directories to
 search for templates.  The =-i= option can be used more than once.
 =TEMPLATE= is the name of the template to create. =DEFINITION= is a
-key-value pair separated by =\==, e.g. =title=Foo=.  All current
+key-value pair separated by an equal sign, e.g. =title=Foo=.  All current
 environment variables and definitions are made available as variables
 within files processed by [[http://tt2.org][Template Toolkit]].
 
@@ -38,7 +41,7 @@ directories can be given in that variable by separating them with a
 colon (=:=).
 
 Before running, =proj-create= evaluates the file =$HOME/.proj.pl= as
-perl code if it exists.  Currently this is only useful for [[*Adding%20new%20handlers][adding new
+perl code if it exists.  Currently this is only useful for [[Adding%20new%20handlers][adding new
 handlers]].
 
 * Templates
