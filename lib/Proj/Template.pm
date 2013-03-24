@@ -1,3 +1,7 @@
+# Copyright (C) 2013 Dario Hamidi <dario.hamidi@gmail.com>.
+#
+# This module is free software; you can redistribute it and/or modify it
+# under the same terms as Perl itself.
 package Proj::Template;
 
 use strict;
