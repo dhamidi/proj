@@ -3,7 +3,7 @@
 
 * Name
 
-proj =/prɔʣ/= -- create files and directories based on templates.
+proj ~/prɔʣ/~ -- create files and directories based on templates.
 
 * Description
 
