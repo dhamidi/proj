@@ -3,7 +3,7 @@
 
 * Name
 
-proj =/prɔʣ/= -- create files and directories based on templates.
+proj ~/prɔʣ/~ -- create files and directories based on templates.
 
 * Description
 
@@ -207,6 +207,10 @@ Proj requires the following perl modules to be installed:
 
 - Template
 - LWP::Simple
+
+* Source Code
+
+The source code for Proj can be found on github: [[http://github.com/Dario-Hamidi/proj]].
 
 * License & Copyright
 
