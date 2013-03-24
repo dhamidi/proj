@@ -35,21 +35,21 @@ sub file {
 
   if (-e $arg) {
     if ($options->{overwrite}) {
-      warn "overwrite $relname\n";
+      $proj->_diag("overwrite $relname");
     }
     else {
-      warn "exists $relname\n";
+      $proj->_diag("exists $relname");
       return;
     }
   }
 
   my $fname = $proj->_source_file_name($arg);
   unless ($fname) {
-    warn "unknown $relname\n";
+    $proj->_diag("unknown $relname");
     return;
   }
 
-  warn "create $relname\n";
+  $proj->_diag("create $relname");
   if ((split '/',$fname)[-1] eq "$arg.tt") {
     $TEMPLATE->process($fname,$proj->{conf},$arg)
       || warn "$fname: " . $TEMPLATE->error;
@@ -74,13 +74,13 @@ sub http {
 
   my $ret = mirror($arg,$fname);
   if ($ret == RC_OK) {
-    warn "get $arg\n";
+    $proj->_diag("get $arg");
   }
   elsif ($ret == RC_NOT_MODIFIED) {
-    warn "keep $arg\n";
+    $proj->_diag("keep $arg");
   }
   else {
-    warn "Failed to mirror $arg\n";
+    $proj->_diag("Failed to mirror $arg");
   }
 
   copy($fname,$dest) or $proj->_fail("Copy failed: $!");

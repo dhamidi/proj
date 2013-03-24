@@ -91,6 +91,12 @@ sub _fail {
   return 1;
 }
 
+sub _diag {
+  my ($self,$message) = @_;
+
+  print $message,"\n";
+}
+
 sub _path {
   my ($self) = @_;
 
