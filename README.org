@@ -12,10 +12,34 @@ git repository.  Templates are general enough to be useful for any kind
 of task that benefits from any sort of scaffolding.
 
 Proj tries to not break any things and does not overwrite any files by
-default.  Single files can be overwritten in the target directory be
+default.  Single files can be overwritten in the target directory by
 explicitly saying so in the template.  If anything goes wrong during
 the processing of a template, all files created so far are deleted in
 order to not leave the target directory in any inconsistent state.
+
+* Usage
+
+Templates are processed with [[bin/proj-create][proj-create]]:
+
+#+BEGIN_EXAMPLE
+proj-create [[-i|--include] INCLUDE] TEMPLATE [DEFINITION ...]
+#+END_EXAMPLE
+
+The option =-i= adds directory =INCLUDE= to the list of directories to
+search for templates.  The =-i= option can be used more than once.
+=TEMPLATE= is the name of the template to create. =DEFINITION= is a
+key-value pair separated by =\==, e.g. =title=Foo=.  All current
+environment variables and definitions are made available as variables
+within files processed by [[http://tt2.org][Template Toolkit]].
+
+By default, =proj-create= looks for templates in =$HOME/.proj.d= and the
+directories given in the environment variable =PROJ_PATH=.  Multiple
+directories can be given in that variable by separating them with a
+colon (=:=).
+
+Before running, =proj-create= evaluates the file =$HOME/.proj.pl= as
+perl code if it exists.  Currently this is only useful for [[*Adding%20new%20handlers][adding new
+handlers]].
 
 * Templates
 
@@ -167,6 +191,12 @@ and otherwise pulls the newest version could look like this:
   
   };
 #+END_SRC
+
+* Todo
+
+- add on-line help to proj-create
+- add comments to the code
+- add example templates
 
 * Requires
 
