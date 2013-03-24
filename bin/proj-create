@@ -1,0 +1,23 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use Getopt::Long;
+use Proj;
+
+my %options = ();
+my @include;
+GetOptions ("include=s" => \@include);
+
+my $name = shift @ARGV;
+
+foreach (@ARGV) {
+  my ($key,@value) = split /=/;
+  $options{$key} = join('=',@value);
+}
+
+push @include,(split ':',$ENV{PROJ_PATH}) if defined $ENV{PROJ_PATH};
+push @include,$ENV{HOME}.'/.templates';
+
+my $proj = Proj->new(-include => \@include, %ENV, %options);
+$proj->create($name);
