@@ -7,6 +7,8 @@ use Cwd;
 use Proj::Handler;
 use Proj::Template;
 
+our $VERSION = 1.00;
+
 sub new {
   my ($package,%args) = @_;
 
