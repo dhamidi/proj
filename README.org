@@ -208,6 +208,10 @@ Proj requires the following perl modules to be installed:
 - Template
 - LWP::Simple
 
+* Source Code
+
+The source code for Proj can be found on github: [[http://github.com/Dario-Hamidi/proj]].
+
 * License & Copyright
 
 Copyright (C) 2013 Dario Hamidi =<dario.hamidi@gmail.com>=.
