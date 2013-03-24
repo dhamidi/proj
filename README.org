@@ -210,7 +210,7 @@ Proj requires the following perl modules to be installed:
 
 * Source Code
 
-The source code for Proj can be found on github: [[http://github.com/Dario-Hamidi/proj]].
+The source code for Proj can be found on github: [[http://github.com/dhamidi/proj]].
 
 * License & Copyright
 
