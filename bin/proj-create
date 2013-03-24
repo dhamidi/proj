@@ -20,4 +20,5 @@ push @include,(split ':',$ENV{PROJ_PATH}) if defined $ENV{PROJ_PATH};
 push @include,$ENV{HOME}.'/.templates';
 
 my $proj = Proj->new(-include => \@include, %ENV, %options);
+$proj->load($ENV{HOME}.'/.proj.pl') if -e $ENV{HOME}.'/.proj.pl';
 $proj->create($name);
