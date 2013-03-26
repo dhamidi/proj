@@ -62,9 +62,9 @@ sub _template_directory {
 sub _source_file_name {
   my ($self,$srcname) = @_;
 
-  return __first_existing(map { join('/',$self->{tmpldir},$_) }
+  return __first_existing(map { $self->{tmpldir}.'/' . $_ }
                             map { ($_.'.tt', $_ ) }
-                              join('/',@{ $self->{path} },$srcname),
+                              $self->curdir . $srcname,
                               $srcname);
 }
 
