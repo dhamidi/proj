@@ -1,0 +1,6 @@
+#!/bin/bash
+
+lighttpd -f conf/lighttpd.conf
+touch lighttpd-errors.log
+tail -f lighttpd-errors.log
+kill -9 $(< lighttpd.pid)

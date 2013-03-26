@@ -1,0 +1,64 @@
+# This template creates the skeleton for a static site in the current
+# directory.  It also showcases the features of proj and serves as a
+# guideline for creating your own templates.
+
+# Elements of this arrayref are run before creating any files or
+# directories.  Strings are run as shell commands, perl subrefs are
+# called instead.
+$before = [
+  q{echo 'creating static website skeleton...'},
+];
+
+# This variable holds an arrayref of arrayrefs which describe the files
+# and directories that should be created.  Each of the inner arraryref
+# is of the form $HANDLER => @ARGS, where $HANDLER is a string
+# describing the type of the entry and @ARGS are the arguments passed to
+# the $HANDLER.  Basically these are just s-expressions mapping to
+# functions in the package "Proj::Handler".
+#
+# The following handlers are available currently:
+# - file $filename
+#
+#   Copies $filename into the current directory.  If a file named
+#   "$filename.tt" is found in the template source directory
+#   ("static-site.d" for this template), that file is processed as a
+#   template with Template Toolkit and the result is written into the
+#   current directory.  Otherwise the file is just copied into the current directory.
+#
+# - dir $dirname @children
+#
+#   Creates directory $dirname if it doesn't exist already, "chdir"s
+#   into it and processes @children there.  While processing @children,
+#   the current directory is set to $dirname.
+#
+# - http $url $file
+#
+#   Downloads $url into the template source directory if the copy on the
+#   server is newer than the local file.  The local file is then copied
+#   into the current directory.  The second argument "$file" is optional
+#   and gives an alternative filename for the file in the current
+#   directory.
+#
+# Any string in $tree can be replaced with a perl subref.  The subref
+# will be called without arguments and should return a string which will
+# be used in its stead.
+$tree = [
+  [dir => 'root',
+   [dir => 'js',
+    [http => 'code.jquery.com/jquery.js']],
+   [dir => 'css',
+    [http => 'necolas.github.com/normalize.css/2.1.0/normalize.css']],
+   [file => 'index.html']],
+  [dir => 'conf',
+   [file => 'lighttpd.conf']],
+  [dir => 'bin',
+   [file => 'start-server']],
+];
+
+# This variable works like $before, except that commands given here are
+# run after creating all files.
+$after = [
+  'git init',
+  'git add .',
+  'git commit -m "initial commit"',
+];
