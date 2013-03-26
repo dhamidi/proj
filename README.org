@@ -20,9 +20,18 @@ explicitly saying so in the template.  If anything goes wrong during
 the processing of a template, all files created so far are deleted in
 order to not leave the target directory in any inconsistent state.
 
+* Installation
+
+1. Put the contents of the =lib= directory into a location on your =PERL5LIB=.
+2. Copy =bin/proj-create= to a directory on your =PATH=.
+3. Copy =examples= to =~/.proj.d= as a starting point for creating your
+   own templates.
+4. Run =proj-create static-site= to create the skeleton for a static
+   website in the /current directory/.
+
 * Usage
 
-Templates are processed with [[bin/proj-create][proj-create]]:
+Templates are processed with =proj-create=:
 
 #+BEGIN_EXAMPLE
 proj-create [[-i|--include] INCLUDE] TEMPLATE [DEFINITION ...]
@@ -199,7 +208,11 @@ and otherwise pulls the newest version could look like this:
 
 - add on-line help to proj-create
 - add comments to the code
-- add example templates
+- add "sync" handler for just copying files/directories (maybe with
+  rsync if available)
+- make the "http" handler operate on the current directory, not the
+  template source directory
+- react to UNIX signals (e.g. clean up on SIGKILL or SIGINT)
 
 * Requires
 
