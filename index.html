@@ -144,14 +144,15 @@ for the JavaScript code in this tag.
 <ul>
 <li><a href="#sec-1">1. Name</a></li>
 <li><a href="#sec-2">2. Description</a></li>
-<li><a href="#sec-3">3. Usage</a></li>
-<li><a href="#sec-4">4. Templates</a></li>
-<li><a href="#sec-5">5. Handlers</a></li>
-<li><a href="#sec-6">6. Adding new handlers</a></li>
-<li><a href="#sec-7">7. Todo</a></li>
-<li><a href="#sec-8">8. Requires</a></li>
-<li><a href="#sec-9">9. Source Code</a></li>
-<li><a href="#sec-10">10. License &amp; Copyright</a></li>
+<li><a href="#sec-3">3. Installation</a></li>
+<li><a href="#sec-4">4. Usage</a></li>
+<li><a href="#sec-5">5. Templates</a></li>
+<li><a href="#sec-6">6. Handlers</a></li>
+<li><a href="#sec-7">7. Adding new handlers</a></li>
+<li><a href="#sec-8">8. Todo</a></li>
+<li><a href="#sec-9">9. Requires</a></li>
+<li><a href="#sec-10">10. Source Code</a></li>
+<li><a href="#sec-11">11. License &amp; Copyright</a></li>
 </ul>
 </div>
 </div>
@@ -186,10 +187,27 @@ order to not leave the target directory in any inconsistent state.
 </div>
 </div>
 <div id="outline-container-3" class="outline-2">
-<h2 id="sec-3"><span class="section-number-2">3</span> Usage</h2>
+<h2 id="sec-3"><span class="section-number-2">3</span> Installation</h2>
 <div class="outline-text-2" id="text-3">
+<ol class="org-ol">
+<li>Put the contents of the <code>lib</code> directory into a location on your <code>PERL5LIB</code>.
+</li>
+<li>Copy <code>bin/proj-create</code> to a directory on your <code>PATH</code>.
+</li>
+<li>Copy <code>examples</code> to <code>~/.proj.d</code> as a starting point for creating your
+own templates.
+</li>
+<li>Run <code>proj-create static-site</code> to create the skeleton for a static
+website in the <i>current directory</i>.
+</li>
+</ol>
+</div>
+</div>
+<div id="outline-container-4" class="outline-2">
+<h2 id="sec-4"><span class="section-number-2">4</span> Usage</h2>
+<div class="outline-text-2" id="text-4">
 <p>
-Templates are processed with <i>proj-create</i>:
+Templates are processed with <code>proj-create</code>:
 </p>
 
 <pre class="example">
@@ -214,14 +232,14 @@ colon (<code>:</code>).
 
 <p>
 Before running, <code>proj-create</code> evaluates the file <code>$HOME/.proj.pl</code> as
-perl code if it exists.  Currently this is only useful for <a href="#sec-6">adding new
+perl code if it exists.  Currently this is only useful for <a href="#sec-7">adding new
 handlers</a>.
 </p>
 </div>
 </div>
-<div id="outline-container-4" class="outline-2">
-<h2 id="sec-4"><span class="section-number-2">4</span> Templates</h2>
-<div class="outline-text-2" id="text-4">
+<div id="outline-container-5" class="outline-2">
+<h2 id="sec-5"><span class="section-number-2">5</span> Templates</h2>
+<div class="outline-text-2" id="text-5">
 <p>
 Templates are regular perl code that is evaluated when processing a
 template.  Proj is instrumented by setting certain variables in the
@@ -293,9 +311,9 @@ local environment).
 </p>
 </div>
 </div>
-<div id="outline-container-5" class="outline-2">
-<h2 id="sec-5"><span class="section-number-2">5</span> Handlers</h2>
-<div class="outline-text-2" id="text-5">
+<div id="outline-container-6" class="outline-2">
+<h2 id="sec-6"><span class="section-number-2">6</span> Handlers</h2>
+<div class="outline-text-2" id="text-6">
 <p>
 The following handlers are defined by default for use in <code>$tree</code>
 entries:
@@ -391,9 +409,9 @@ Example:
 </dl>
 </div>
 </div>
-<div id="outline-container-6" class="outline-2">
-<h2 id="sec-6"><span class="section-number-2">6</span> Adding new handlers</h2>
-<div class="outline-text-2" id="text-6">
+<div id="outline-container-7" class="outline-2">
+<h2 id="sec-7"><span class="section-number-2">7</span> Adding new handlers</h2>
+<div class="outline-text-2" id="text-7">
 <p>
 It is possible to define own handlers with the function <code>defhandler</code> in
 the proj configuration file (<code>~/.proj.pl</code>).  <code>defhandler</code> takes two
@@ -442,22 +460,28 @@ defhandler <span style="color: #006400; font-weight: bold;">git</span> =&gt; <sp
 </div>
 </div>
 </div>
-<div id="outline-container-7" class="outline-2">
-<h2 id="sec-7"><span class="section-number-2">7</span> Todo</h2>
-<div class="outline-text-2" id="text-7">
+<div id="outline-container-8" class="outline-2">
+<h2 id="sec-8"><span class="section-number-2">8</span> Todo</h2>
+<div class="outline-text-2" id="text-8">
 <ul class="org-ul">
 <li>add on-line help to proj-create
 </li>
 <li>add comments to the code
 </li>
-<li>add example templates
+<li>add "sync" handler for just copying files/directories (maybe with
+rsync if available)
+</li>
+<li>make the "http" handler operate on the current directory, not the
+template source directory
+</li>
+<li>react to UNIX signals (e.g. clean up on SIGKILL or SIGINT)
 </li>
 </ul>
 </div>
 </div>
-<div id="outline-container-8" class="outline-2">
-<h2 id="sec-8"><span class="section-number-2">8</span> Requires</h2>
-<div class="outline-text-2" id="text-8">
+<div id="outline-container-9" class="outline-2">
+<h2 id="sec-9"><span class="section-number-2">9</span> Requires</h2>
+<div class="outline-text-2" id="text-9">
 <p>
 Proj requires the following perl modules to be installed:
 </p>
@@ -470,17 +494,17 @@ Proj requires the following perl modules to be installed:
 </ul>
 </div>
 </div>
-<div id="outline-container-9" class="outline-2">
-<h2 id="sec-9"><span class="section-number-2">9</span> Source Code</h2>
-<div class="outline-text-2" id="text-9">
+<div id="outline-container-10" class="outline-2">
+<h2 id="sec-10"><span class="section-number-2">10</span> Source Code</h2>
+<div class="outline-text-2" id="text-10">
 <p>
-The source code for Proj can be found on github: <a href="http://github.com/Dario-Hamidi/proj">http://github.com/Dario-Hamidi/proj</a>.
+The source code for Proj can be found on github: <a href="http://github.com/dhamidi/proj">http://github.com/dhamidi/proj</a>.
 </p>
 </div>
 </div>
-<div id="outline-container-10" class="outline-2">
-<h2 id="sec-10"><span class="section-number-2">10</span> License &amp; Copyright</h2>
-<div class="outline-text-2" id="text-10">
+<div id="outline-container-11" class="outline-2">
+<h2 id="sec-11"><span class="section-number-2">11</span> License &amp; Copyright</h2>
+<div class="outline-text-2" id="text-11">
 <p>
 Copyright (C) 2013 Dario Hamidi <code>&lt;dario.hamidi@gmail.com&gt;</code>.
 </p>
