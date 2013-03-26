@@ -228,7 +228,8 @@ sub load {
     *{"Proj::Handler::${name}"} = $code;
   };
 
-  unless (my $return = do $filename) {
+  my $return;
+  unless ($return = do $filename) {
     die "couldn't parse $filename: $@" if $@;
     die "cannot read $filename: $!" unless defined $return;
   }
